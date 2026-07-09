@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import psycopg2
 import psycopg2.extras
 from datetime import datetime
@@ -8,6 +8,31 @@ import boto3
 from botocore.config import Config
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "gdg_merch_super_secret_key_2026")
+
+@app.before_request
+def require_login():
+    if request.endpoint and request.endpoint not in ['login', 'static']:
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == 'tech@gdghanoi.com' and password == 'GDGnumber1!@':
+            session['logged_in'] = True
+            return redirect(url_for('index'))
+        else:
+            error = 'Sai tài khoản hoặc mật khẩu'
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
 
 # ─── R2 CONFIG (đọc từ env vars) ─────────────────────────────────────────────
 R2_ACCOUNT_ID     = os.environ.get("R2_ACCOUNT_ID", "")

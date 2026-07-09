@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Đăng nhập - GDG Merch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #f8f9fa;
+    --surface:  #ffffff;
+    --border:   #dadce0;
+    --primary:  #0b57d0;
+    --primary2: #0842a0;
+    --danger:   #b3261e;
+    --danger-light: #fce8e6;
+    --text:     #202124;
+    --muted:    #5f6368;
+    --radius:   12px;
+    --shadow:   0 1px 2px 0 rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+
+  .login-card {
+    background: var(--surface);
+    width: 100%;
+    max-width: 400px;
+    padding: 32px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+
+  .login-card h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+    text-align: center;
+    letter-spacing: -0.5px;
+  }
+
+  .login-card p.subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  input {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    color: var(--text); font-size: 15px; font-family: inherit;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  input:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 2px #e8f0fe;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 24px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    transition: all .15s;
+    font-family: inherit;
+    margin-top: 8px;
+  }
+
+  .btn:hover {
+    background: var(--primary2);
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+  }
+
+  .error {
+    background: var(--danger-light);
+    color: var(--danger);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    font-weight: 500;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <h2>GDG Merch 🛍</h2>
+  <p class="subtitle">Bảng quản trị sản phẩm</p>
+
+  {% if error %}
+  <div class="error">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="/login">
+    <div class="form-group">
+      <label>Tài khoản</label>
+      <input type="text" name="username" placeholder="Nhập tài khoản" required autofocus />
+    </div>
+    <div class="form-group">
+      <label>Mật khẩu</label>
+      <input type="password" name="password" placeholder="Nhập mật khẩu" required />
+    </div>
+    <button type="submit" class="btn">Đăng nhập</button>
+  </form>
+</div>
+
+</body>
+</html>
