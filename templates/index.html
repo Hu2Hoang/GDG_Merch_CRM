@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GDG Merch — Quản lý sản phẩm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #f8f9fa; /* Material Light Background */
+    --surface:  #ffffff; /* Material Surface */
+    --card:     #ffffff; /* Material Card */
+    --border:   #dadce0; /* Google Border */
+    --primary:  #0b57d0; /* Google Blue MD3 */
+    --primary2: #0842a0; /* Google Blue Hover */
+    --primary-light: #e8f0fe; /* Google Blue Light */
+    --danger:   #b3261e; /* Google Red MD3 */
+    --danger-light: #fce8e6;
+    --success:  #146c2e; /* Google Green MD3 */
+    --success-light: #e6f4ea;
+    --warn:     #ea8600; /* Google Yellow */
+    --text:     #202124; /* Google Text Dark */
+    --muted:    #5f6368; /* Google Text Muted */
+    --radius:   12px;
+    --shadow-1: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+    --shadow-2: 0 1px 2px 0 rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.05);
+  }
+  header .logo { font-size: 20px; font-weight: 700; color: var(--primary); letter-spacing: -0.5px; }
+  header .subtitle { color: var(--muted); font-size: 13px; }
+  header .actions { margin-left: auto; }
+
+  /* ── MAIN ── */
+  main { padding: 28px 32px; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+  }
+  .toolbar h2 { font-size: 18px; font-weight: 600; }
+  .toolbar .count { background: var(--border); border-radius: 20px; padding: 2px 10px; font-size: 12px; color: var(--muted); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: 20px; /* MD3 Pill shape */
+    font-size: 14px;
+    font-weight: 500; cursor: pointer; border: none; transition: all .15s;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary2); box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); }
+  .btn-danger  { background: transparent; color: var(--danger); border: 1px solid var(--border); }
+  .btn-danger:hover  { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+  .btn-outline { background: transparent; color: var(--primary); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--primary-light); border-color: var(--primary-light); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 16px; }
+  .btn-icon { padding: 6px; border-radius: 50%; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-1); }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #f1f3f4; }
+  thead th {
+    padding: 12px 16px; text-align: left;
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .6px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg); }
+  tbody td { padding: 12px 16px; font-size: 14px; vertical-align: middle; }
+  td.center { text-align: center; }
+
+  .thumb { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: var(--border); }
+  .thumb-placeholder { width: 52px; height: 52px; border-radius: 8px; background: var(--border); display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 22px; }
+
+  .badge {
+    display: inline-block; border-radius: 20px; padding: 3px 10px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-green { background: var(--success-light); color: var(--success); }
+  .badge-red   { background: var(--danger-light); color: var(--danger); }
+  .badge-blue  { background: var(--primary-light); color: var(--primary); }
+
+  .price { font-weight: 600; color: var(--primary); }
+
+  /* ── MODAL ── */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.65);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; opacity: 0; pointer-events: none; transition: opacity .2s;
+    padding: 16px;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--surface); border: none;
+    border-radius: var(--radius); width: 100%; max-width: 60%;
+    max-height: 90vh; overflow-y: auto;
+    transform: translateY(20px); transition: transform .2s;
+    box-shadow: var(--shadow-2);
+  }
+  .overlay.show .modal { transform: none; }
+  .modal-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .modal-header h3 { font-size: 17px; font-weight: 600; flex: 1; }
+  .modal-body { padding: 24px; }
+  .modal-footer {
+    padding: 16px 24px; border-top: 1px solid var(--border);
+    display: flex; gap: 10px; justify-content: flex-end;
+  }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-full { grid-column: 1 / -1; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 12px; font-weight: 500; color: var(--muted); }
+  input, textarea, select {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+    color: var(--text); font-size: 14px; font-family: inherit;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
+  textarea { resize: vertical; min-height: 80px; }
+  .toggle-row { display: flex; align-items: center; gap: 10px; }
+  input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+
+  /* sub-sections in modal */
+  .section-label {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .6px;
+    margin: 20px 0 10px;
+    padding-top: 20px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sub-list { display: flex; flex-direction: column; gap: 8px; }
+  .sub-row {
+    display: grid; gap: 8px; align-items: center;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  .sub-row.opt-row  { grid-template-columns: 1fr 1fr 90px 80px auto; }
+  .sub-row.img-row  { grid-template-columns: 72px 52px 1fr 80px auto auto; }
+  .sub-row input    { background: var(--surface); }
+  .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 0 4px; }
+  .del-btn:hover { color: var(--danger); }
+  .upload-btn {
+    background: none; border: 1px solid var(--border); color: var(--primary);
+    border-radius: 16px; padding: 5px 8px; cursor: pointer; font-size: 14px;
+    transition: all .15s; white-space: nowrap;
+  }
+  .upload-btn:hover { background: var(--primary-light); border-color: var(--primary-light); }
+  .upload-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* image row label (STT + option value) */
+  .img-label {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; min-width: 68px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 6px; text-align: center;
+  }
+  .img-label .lbl-idx {
+    font-size: 10px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .4px;
+  }
+  .img-label .lbl-val {
+    font-size: 12px; font-weight: 600; color: var(--primary);
+    max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .img-label.no-opt .lbl-val { color: var(--muted); font-weight: 400; }
+
+  /* toast */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--success); color: #fff;
+    padding: 12px 20px; border-radius: 8px; font-size: 14px;
+    transform: translateY(80px); opacity: 0;
+    transition: all .3s; z-index: 300;
+  }
+  #toast.show { transform: none; opacity: 1; }
+  #toast.error { background: var(--danger); }
+
+  /* spinner */
+  .spinner {
+    width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin .6s linear infinite; display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* empty */
+  .empty { padding: 48px; text-align: center; color: var(--muted); }
+  .empty .icon { font-size: 48px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">GDG Merch 🛍</div>
+    <div class="subtitle">Bảng quản trị sản phẩm</div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <h2>Danh sách sản phẩm</h2>
+    <span class="count" id="count">0</span>
+    <div style="margin-left:auto">
+      <button class="btn btn-primary" onclick="openCreate()">
+        <span>＋</span> Thêm sản phẩm
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ảnh</th>
+          <th>Tên sản phẩm</th>
+          <th>Giá bán</th>
+          <th>Tùy chọn</th>
+          <th>Trạng thái</th>
+          <th style="text-align:center">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6" class="empty"><div class="icon">⏳</div>Đang tải...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeIfOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Thêm sản phẩm</h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">✕ Đóng</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id"/>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tên sản phẩm *</label>
+          <input id="f-name" placeholder="Ví dụ: Áo T-shirt"/>
+        </div>
+        <div class="form-group" style="display:none;">
+          <label>Loại sản phẩm</label>
+          <input id="f-type" placeholder="Ví dụ: T-Shirt, Phụ kiện"/>
+        </div>
+        <div class="form-group form-full">
+          <label>Tiêu đề / Slogan</label>
+          <input id="f-title" placeholder="Ví dụ: Áo phiên bản giới hạn GDG 2025"/>
+        </div>
+        <div class="form-group form-full">
+          <label>Mô tả sản phẩm</label>
+          <textarea id="f-desc" rows="3" placeholder="Mô tả chi tiết..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Giá bán (VNĐ)</label>
+          <input id="f-price" type="number" min="0" placeholder="217000"/>
+        </div>
+        <div class="form-group" style="display:none;">
+          <label>Giảm giá (%)</label>
+          <input id="f-discount" type="number" min="0" max="100" placeholder="0"/>
+        </div>
+        <div class="form-group" style="display:none;">
+          <label>Campaign ID</label>
+          <input id="f-campaign" type="number" value="1"/>
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <label>&nbsp;</label>
+          <div class="toggle-row">
+            <input id="f-active" type="checkbox" checked/>
+            <label for="f-active" style="color:var(--text); font-size:14px; cursor:pointer">Đang hoạt động</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTIONS -->
+      <div class="section-label">
+        Phân loại (Options)
+        <button class="btn btn-outline btn-sm" onclick="addOption()">＋ Thêm</button>
+      </div>
+      <div class="sub-list" id="options-list"></div>
+
+      <!-- IMAGES -->
+      <div class="section-label">
+        Hình ảnh (Images)
+        <button class="btn btn-outline btn-sm" onclick="addImage()">＋ Thêm</button>
+      </div>
+      <div class="sub-list" id="images-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" id="save-btn" onclick="save()">
+        <span id="save-label">💾 Lưu sản phẩm</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="overlay" id="confirm-overlay" onclick="closeConfirm(event)">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3>⚠️ Xác nhận xóa</h3>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--muted)">Bạn có chắc muốn ẩn sản phẩm <b id="confirm-name" style="color:var(--text)"></b>?<br/>Sản phẩm sẽ bị xóa mềm và không hiển thị nữa.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">Hủy</button>
+      <button class="btn btn-danger" id="confirm-del-btn" onclick="confirmDelete()">Xóa</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let products = [];
+let deleteId = null;
+
+// ── LOAD ─────────────────────────────────────────────────────────────────────
+async function load() {
+  const res = await fetch('/api/products');
+  products = await res.json();
+  render();
+}
+
+function fmt(n) {
+  return Number(n).toLocaleString('vi-VN') + ' đ';
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  document.getElementById('count').textContent = products.length;
+  if (!products.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty"><div class="icon">📦</div>Chưa có sản phẩm nào</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = products.map(p => `
+    <tr>
+      <td>
+        ${p.thumb
+          ? `<img class="thumb" src="${p.thumb}" onerror="this.style.display='none'" />`
+          : `<div class="thumb-placeholder">🖼</div>`}
+      </td>
+      <td>
+        <div style="font-weight:600">${p.Name}</div>
+        ${p.Title ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${p.Title}</div>` : ''}
+      </td>
+      <td class="price">${fmt(p.BasePrice)}</td>
+      <td style="color:var(--muted);font-size:13px">
+        ${p.option_count} option · ${p.image_count} ảnh
+      </td>
+      <td>
+        <span class="badge ${p.IsActive ? 'badge-green' : 'badge-red'}">
+          ${p.IsActive ? '● Hoạt động' : '○ Tắt'}
+        </span>
+      </td>
+      <td class="center" style="white-space:nowrap">
+        <button class="btn btn-outline btn-sm" onclick="openEdit(${p.Id})" style="margin-right:6px">Update</button>
+        <button class="btn btn-danger btn-sm" onclick="askDelete(${p.Id}, '${p.Name.replace(/'/g,"\\'")}')">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────────────────────
+function openModal()  { document.getElementById('overlay').classList.add('show'); }
+function closeModal() { document.getElementById('overlay').classList.remove('show'); }
+function closeIfOutside(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+
+function clearForm() {
+  ['f-id','f-name','f-title','f-type','f-desc','f-price','f-discount'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-campaign').value = 1;
+  document.getElementById('f-active').checked = true;
+  document.getElementById('options-list').innerHTML = '';
+  document.getElementById('images-list').innerHTML = '';
+}
+
+// ── CREATE ────────────────────────────────────────────────────────────────────
+function openCreate() {
+  clearForm();
+  document.getElementById('modal-title').textContent = 'Thêm sản phẩm mới';
+  document.getElementById('save-label').textContent = '💾 Lưu sản phẩm';
+  openModal();
+}
+
+// ── EDIT ──────────────────────────────────────────────────────────────────────
+async function openEdit(id) {
+  clearForm();
+  document.getElementById('modal-title').textContent = 'Chỉnh sửa sản phẩm';
+  document.getElementById('save-label').textContent = '💾 Cập nhật';
+
+  const res = await fetch(`/api/products/${id}`);
+  const p = await res.json();
+
+  document.getElementById('f-id').value        = p.Id;
+  document.getElementById('f-name').value      = p.Name || '';
+  document.getElementById('f-title').value     = p.Title || '';
+  document.getElementById('f-type').value      = p.Type || '';
+  document.getElementById('f-desc').value      = p.Description || '';
+  document.getElementById('f-price').value     = p.BasePrice || 0;
+  document.getElementById('f-discount').value  = p.DiscountPercentage || 0;
+  document.getElementById('f-campaign').value  = p.CampaignId || 1;
+  document.getElementById('f-active').checked  = p.IsActive;
+
+  (p.options || []).forEach(o => addOption(o));
+  (p.images  || []).forEach(i => addImage(i));
+
+  openModal();
+}
+
+// ── OPTIONS ───────────────────────────────────────────────────────────────────
+function addOption(data = {}) {
+  const list = document.getElementById('options-list');
+  const div = document.createElement('div');
+  div.className = 'sub-row opt-row';
+  div.innerHTML = `
+    <input placeholder="OptionType (vd: Size)" value="${data.OptionType||''}"/>
+    <input placeholder="OptionValue (vd: M)" value="${data.OptionValue||''}"/>
+    <input type="number" placeholder="Giá thêm" value="${data.AdditionalPrice||0}"/>
+    <input type="number" placeholder="Tồn kho" value="${data.StockQuantity||1000}"/>
+    <button class="del-btn" onclick="this.closest('.sub-row').remove(); refreshImageLabels()">✕</button>
+  `;
+  // Khi user gõ OptionValue → cập nhật label ảnh tương ứng
+  div.querySelectorAll('input')[1].addEventListener('input', refreshImageLabels);
+  list.appendChild(div);
+  refreshImageLabels();
+}
+
+// ── IMAGES ────────────────────────────────────────────────────────────────────
+function addImage(data = {}) {
+  const list = document.getElementById('images-list');
+  const div = document.createElement('div');
+  div.className = 'sub-row img-row';
+  const thumb = data.ImageUrl
+    ? `<img src="${data.ImageUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;background:var(--border)" onerror="this.style.display='none'"/>`
+    : `<div style="width:48px;height:48px;border-radius:6px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:20px">🖼</div>`;
+  div.innerHTML = `
+    <div class="img-label no-opt"><span class="lbl-idx">Ảnh #?</span><span class="lbl-val">—</span></div>
+    <div class="thumb-cell">${thumb}</div>
+    <input placeholder="URL hình ảnh" value="${data.ImageUrl||''}" oninput="updateThumb(this)"/>
+    <select>
+      <option value="gallery" ${(data.ImageType||'gallery')==='gallery'?'selected':''}>gallery</option>
+      <option value="thumbnail" ${data.ImageType==='thumbnail'?'selected':''}>thumbnail</option>
+    </select>
+    <button class="upload-btn" title="Upload từ máy tính" onclick="triggerUpload(this)">📤</button>
+    <button class="del-btn" onclick="this.closest('.sub-row').remove(); refreshImageLabels()">✕</button>
+    <input type="file" accept="image/*" style="display:none" onchange="handleFileUpload(this)">
+  `;
+  list.appendChild(div);
+  refreshImageLabels();
+}
+
+function updateThumb(input) {
+  const cell = input.closest('.img-row').querySelector('.thumb-cell');
+  cell.innerHTML = input.value
+    ? `<img src="${input.value}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;background:var(--border)" onerror="this.style.background='var(--border)'"/>`
+    : `<div style="width:48px;height:48px;border-radius:6px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:20px">🖼</div>`;
+}
+
+// ── REFRESH IMAGE LABELS ──────────────────────────────────────────────────────
+// Đọc danh sách OptionValue từ options-list, gán nhãn "Ảnh #N · OptionValue"
+// vào từng dòng ảnh theo thứ tự DisplayOrder tương ứng
+function refreshImageLabels() {
+  const optRows  = [...document.querySelectorAll('#options-list .opt-row')];
+  const imgRows  = [...document.querySelectorAll('#images-list .img-row')];
+  const optVals  = optRows.map(r => r.querySelectorAll('input')[1].value.trim() || '—');
+  const hasOpts  = optVals.length > 0;
+
+  imgRows.forEach((row, idx) => {
+    const lbl = row.querySelector('.img-label');
+    if (!lbl) return;
+    const num = idx + 1;
+    const val = hasOpts ? (optVals[idx] || `(thêm option ${num})`) : 'Ảnh chung';
+    const isMatched = hasOpts && !!optVals[idx];
+    lbl.querySelector('.lbl-idx').textContent = `Ảnh #${num}`;
+    lbl.querySelector('.lbl-val').textContent = val;
+    lbl.className = 'img-label' + (isMatched ? '' : ' no-opt');
+  });
+}
+
+// ── R2 UPLOAD ─────────────────────────────────────────────────────────────────
+function triggerUpload(btn) {
+  // Kích hoạt hidden file input trong cùng img-row
+  btn.closest('.img-row').querySelector('input[type=file]').click();
+}
+
+async function handleFileUpload(fileInput) {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const row   = fileInput.closest('.img-row');
+  const upBtn = row.querySelector('.upload-btn');
+  const urlInput = row.querySelector('input[type=text], input:not([type=file]):not([type=number])');
+
+  upBtn.disabled = true;
+  upBtn.textContent = '⏳';
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload thất bại');
+
+    urlInput.value = data.url;
+    updateThumb(urlInput);   // cập nhật preview
+    showToast('☁️ Upload thành công!');
+  } catch(e) {
+    showToast('❌ ' + e.message, true);
+  } finally {
+    upBtn.disabled = false;
+    upBtn.textContent = '📤';
+    fileInput.value = '';   // reset để có thể chọn lại cùng file
+  }
+}
+
+// ── SAVE ──────────────────────────────────────────────────────────────────────
+function collectForm() {
+  const options = [...document.querySelectorAll('#options-list .opt-row')].map(row => {
+    const inputs = row.querySelectorAll('input');
+    return {
+      OptionType: inputs[0].value.trim(),
+      OptionValue: inputs[1].value.trim(),
+      AdditionalPrice: parseFloat(inputs[2].value) || 0,
+      StockQuantity: parseInt(inputs[3].value) || 1000,
+      MinOrderQuantity: 1,
+      MaxOrderQuantity: 10,
+      IsAvailable: true
+    };
+  }).filter(o => o.OptionType && o.OptionValue);
+
+  const images = [...document.querySelectorAll('#images-list .img-row')].map(row => {
+    const input  = row.querySelector('input');
+    const select = row.querySelector('select');
+    return { ImageUrl: input.value.trim(), ImageType: select.value };
+  }).filter(i => i.ImageUrl);
+
+  return {
+    Name: document.getElementById('f-name').value.trim(),
+    Title: document.getElementById('f-title').value.trim(),
+    Type: document.getElementById('f-type').value.trim(),
+    Description: document.getElementById('f-desc').value.trim(),
+    BasePrice: parseFloat(document.getElementById('f-price').value) || 0,
+    DiscountPercentage: parseFloat(document.getElementById('f-discount').value) || 0,
+    Currency: 'VND',
+    CampaignId: parseInt(document.getElementById('f-campaign').value) || 1,
+    IsActive: document.getElementById('f-active').checked,
+    options, images
+  };
+}
+
+async function save() {
+  const id = document.getElementById('f-id').value;
+  const body = collectForm();
+  if (!body.Name) { showToast('Vui lòng nhập tên sản phẩm!', true); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+
+  try {
+    const method = id ? 'PUT' : 'POST';
+    const url    = id ? `/api/products/${id}` : '/api/products';
+    const res = await fetch(url, {
+      method, headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error();
+    closeModal();
+    showToast(id ? '✅ Đã cập nhật sản phẩm!' : '✅ Đã thêm sản phẩm mới!');
+    load();
+  } catch {
+    showToast('❌ Có lỗi xảy ra, thử lại!', true);
+  } finally {
+    btn.innerHTML = '<span id="save-label">💾 Lưu</span>';
+    btn.disabled = false;
+  }
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+function askDelete(id, name) {
+  deleteId = id;
+  document.getElementById('confirm-name').textContent = name;
+  document.getElementById('confirm-overlay').classList.add('show');
+}
+function closeConfirmModal() { document.getElementById('confirm-overlay').classList.remove('show'); deleteId = null; }
+function closeConfirm(e) { if (e.target === document.getElementById('confirm-overlay')) closeConfirmModal(); }
+
+async function confirmDelete() {
+  if (!deleteId) return;
+  const btn = document.getElementById('confirm-del-btn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+  try {
+    await fetch(`/api/products/${deleteId}`, { method: 'DELETE' });
+    closeConfirmModal();
+    showToast('🗑 Đã xóa sản phẩm!');
+    load();
+  } catch {
+    showToast('❌ Không thể xóa!', true);
+  } finally {
+    btn.innerHTML = 'Xóa'; btn.disabled = false;
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg, isErr = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isErr ? ' error' : '');
+  setTimeout(() => t.className = '', 3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+load();
+</script>
+</body>
+</html>
