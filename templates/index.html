@@ -226,7 +226,10 @@
   <div class="toolbar">
     <h2>Danh sách sản phẩm</h2>
     <span class="count" id="count">0</span>
-    <div style="margin-left:auto">
+    <div style="margin-left:auto;display:flex;gap:10px;">
+      <button class="btn btn-outline" id="export-btn" onclick="exportCSV()">
+        <span>⬇</span> Export CSV
+      </button>
       <button class="btn btn-primary" onclick="openCreate()">
         <span>＋</span> Thêm sản phẩm
       </button>
@@ -639,6 +642,24 @@ function showToast(msg, isErr = false) {
   t.textContent = msg;
   t.className = 'show' + (isErr ? ' error' : '');
   setTimeout(() => t.className = '', 3000);
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const btn = document.getElementById('export-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="border-color:rgba(11,87,208,.3);border-top-color:var(--primary)"></span> Đang xuất...';
+  // Dùng link ẩn để trigger download; khôi phục nút sau 2s
+  const a = document.createElement('a');
+  a.href = '/api/products/export';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<span>⬇</span> Export CSV';
+  }, 2000);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
